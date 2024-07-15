@@ -55,14 +55,26 @@ async function connectToDB(): Promise<mysql.Connection | null> {
 app.get('/cars', async (req, res) => {
   let carsList = [];
 
+  const limit = req.headers['limit']
+  const page = req.headers['page']
+
+  console.log(limit)
+  console.log(page)
+
+  if (!limit || limit === undefined || !page || page === undefined) {
+    res.status(500).send('No values for (either or both) limit and page specified.');
+    return
+  }
+
   try {
     const connection = await connectToDB();
 
     if (connection === null) {
+      res.status(500).send('No connection to database.');
       return
     }
-
-    const [rows] = await connection.query<RowDataPacket[]>('SELECT * FROM car;')
+    
+    const [rows] = await connection.query<RowDataPacket[]>(`SELECT * FROM car LIMIT ${limit} OFFSET ${page};`)
 
     carsList = rows.map(row => {
       return {
@@ -84,6 +96,7 @@ app.get('/cars', async (req, res) => {
   } catch (e) {
     console.error(e);
     res.status(500).send('Error retrieving cars.');
+    return
   }
 
 });
