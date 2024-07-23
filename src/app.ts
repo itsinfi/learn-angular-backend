@@ -18,7 +18,16 @@ const useHttps = config.useHttps;
 const corsConfig = {
   origin: frontend_url,
   methods: ["GET"],
-  allowedHeaders: ["Origin", "X-Requested-With", "Authorization", "content-type", "content-length", "Accept", "limit", "page"],
+  allowedHeaders: [
+    "Origin",
+    "X-Requested-With",
+    "Authorization",
+    "content-type",
+    "content-length",
+    "Accept",
+    "limit",
+    "page",
+    "search"],
   credentials: true,
 };
 
@@ -62,10 +71,14 @@ async function query(onConnection: Function, onError: Function) {
 
 
 // get the amount of rows of a certain table
-async function getCountOfRows(connection: mysql.Connection, table: string) {
+async function getCountOfRows(connection: mysql.Connection, table: string, search: string) {
 
   // read count of different ids
-  const [totalRows] = await connection.execute(`SELECT COUNT(id) FROM ${table}`);
+  const [totalRows] = await connection.execute(
+    `SELECT COUNT(id)
+    FROM ${table}
+    WHERE LOWER(CONCAT(brand, ' ', name))
+    LIKE LOWER(CONCAT('%', ?, '%'))`, [search]);
 
   // return count of ids
   return (totalRows as any)[0]['COUNT(id)'];
@@ -83,8 +96,11 @@ app.get('/cars', async (req, res) => {
       let carsList = [];
 
       // read limit and page values for paginiation from header
-      const limit = req.headers['limit'];
-      const page = req.headers['page'];
+      const limit = readHeaderNumber(req.headers['limit']);
+      const page = readHeaderNumber(req.headers['page']);
+      
+      // read search value from header
+      const search = readHeaderString(req.headers['search']);
 
       // if undefined limit and/or page values, send an error message
       if (!limit || limit === undefined || !page || page === undefined) {
@@ -93,10 +109,18 @@ app.get('/cars', async (req, res) => {
       }
 
       // get number of cars
-      const total = await getCountOfRows(connection, 'car')
+      const total = await getCountOfRows(connection, 'car', search)
       
       // execute query to get cars on defined page with defined limit
-      const [rows] = await connection.query<RowDataPacket[]>(`SELECT * FROM car LIMIT ${limit} OFFSET ${page};`)
+      const [rows] = await connection.query<RowDataPacket[]>(
+        `SELECT * 
+        FROM car
+        WHERE LOWER(CONCAT(brand, ' ', name))
+        LIKE LOWER(CONCAT('%', ?, '%'))
+        LIMIT ?
+        OFFSET ?;`,
+        [search, limit, page]
+      );
   
       // map the result to represent car objects
       carsList = rows.map(row => {
@@ -183,3 +207,26 @@ app.get('/cars/:id', async (req, res) => {
 app.listen(backend_port, () => {
   console.log(`uwu: http://localhost:${backend_port}/`);
 });
+
+// just a small util to make sure the header is read properly and returned as a number value
+function readHeaderNumber(header: string | string[] | undefined) {
+  if (typeof(header) === 'string') {
+    return parseInt(header);
+  } else if (Array.isArray(header) && header.length > 0) {
+    return parseInt(header[0])
+  } else {
+    throw 'Error reading header';
+  }
+}
+
+
+// just a small util to make sure the header is read properly and returned as a number value
+function readHeaderString(header: string | string[] | undefined) {
+  if (typeof(header) === 'string') {
+    return header;
+  } else if (Array.isArray(header) && header.length > 0) {
+    return header[0]
+  } else {
+    throw 'Error reading header';
+  }
+}
