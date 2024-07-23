@@ -17,9 +17,9 @@ const useHttps = config.useHttps;
 // create cors config object
 const corsConfig = {
   origin: frontend_url,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "limit", "page"],
-  credentials: true
+  methods: ["GET"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Authorization", "content-type", "content-length", "Accept", "limit", "page"],
+  credentials: true,
 };
 
 // init express
@@ -73,23 +73,24 @@ async function getCountOfRows(connection: mysql.Connection, table: string) {
 
 // get all cars
 app.get('/cars', async (req, res) => {
-  
-  // define empty list for cars
-  let carsList = [];
 
-  // read limit and page values for paginiation from header
-  const limit = req.headers['limit']
-  const page = req.headers['page']
-
-  // if undefined limit and/or page values, send an error message
-  if (!limit || limit === undefined || !page || page === undefined) {
-    res.status(500).send('No values for (either or both) limit and page specified.');
-    return
-  }
 
   // define query operations to execute and error handling
   const connection = await query(async (connection: mysql.Connection) => {
     try {
+
+      // define empty list for cars
+      let carsList = [];
+
+      // read limit and page values for paginiation from header
+      const limit = req.headers['limit'];
+      const page = req.headers['page'];
+
+      // if undefined limit and/or page values, send an error message
+      if (!limit || limit === undefined || !page || page === undefined) {
+        res.status(500).send('No values for (either or both) limit and page specified.');
+        return
+      }
 
       // get number of cars
       const total = await getCountOfRows(connection, 'car')
@@ -110,14 +111,9 @@ app.get('/cars', async (req, res) => {
           description: row['description']
         };
       });
-
-      // add paginiation info as additional headers to the response
-      res.appendHeader('limit', `${limit}`);
-      res.appendHeader('page', `${page}`);
-      res.appendHeader('total', `${total}`);
       
       // return the array of cars as in json format as the request result
-      res.json(carsList);
+      res.json({ limit, page, total, data: carsList });
   
       // handle errors
     } catch (e) {
