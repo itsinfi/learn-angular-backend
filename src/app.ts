@@ -8,16 +8,11 @@ import https from 'https';
 //Route imports
 import { carsRouter } from './api/cars/cars';
 import { carDetailsRouter } from './api/cars/details/car-details';
+import { carBrandsRouter } from './api/cars/brands/car-brands';
 
 
 // init express
 const app = express();
-
-
-//Route Definitions
-app.get('/cars', carsRouter);
-app.get('/cars/:id', carDetailsRouter);
-
 
 // read config
 const configJSONString = fs.readFileSync('config.json', 'utf-8');
@@ -33,20 +28,31 @@ const corsConfig = {
   origin: frontend_url,
   methods: ["GET"],
   allowedHeaders: [
+    "Accept",
+    "Authorization",
+    "Content-Type",
+    "Content-Length",
     "Origin",
     "X-Requested-With",
-    "Authorization",
-    "content-type",
-    "content-length",
-    "Accept",
-    "limit",
-    "page",
-    "search"],
+    "Limit",
+    "Page",
+    "Search",
+    "Brand"
+  ],
   credentials: true,
+  optionsSuccessStatus: 204
 };
 
 // cors middleware
-app.use(cors(corsConfig))
+app.use(cors(corsConfig));
+app.use(express.json());
+
+
+//Route Definitions
+app.get('/cars', carsRouter);
+app.get('/cars/details/:id', carDetailsRouter);
+app.get('/cars/brands', carBrandsRouter);
+
 
 // init server
 const server = useHttps ? https.createServer(app) : http.createServer(app);
@@ -55,7 +61,3 @@ const server = useHttps ? https.createServer(app) : http.createServer(app);
 server.listen(backend_port, () => {
   console.log(`uwu: http://localhost:${backend_port}/`);
 });
-
-export {
-  app
-}

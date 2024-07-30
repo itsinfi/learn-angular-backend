@@ -3,11 +3,11 @@ import mysql, { RowDataPacket } from 'mysql2/promise';
 import { query } from "../../utils/db/query";
 import { readHeaderNumber } from "../../utils/http/readHeaderNumber";
 import { readHeaderString } from "../../utils/http/readHeaderString";
-import { getCountOfRows } from "../../utils/db/getRowCount";
+import { getCountOfRow } from "../../utils/db/getRowCount";
+import { readHeaderStringArray } from '../../utils/http/readHeaderStringArray';
 
 // init router
 const carsRouter = express.Router();
-carsRouter.use(express.json());
 
 // get all cars
 carsRouter.get('/cars', async (req, res) => {
@@ -26,6 +26,9 @@ carsRouter.get('/cars', async (req, res) => {
       
       // read search value from header
       const search = readHeaderString(req.headers['search']);
+      
+      // read filter related values from header
+      const brand = readHeaderString(req.headers['brand']);
 
       // if undefined limit and/or page values, send an error message
       if (!limit || limit === undefined || !page || page === undefined) {
@@ -34,18 +37,40 @@ carsRouter.get('/cars', async (req, res) => {
       }
 
       // get number of cars
-      const total = await getCountOfRows(connection, 'car', search)
+      const total = await getCountOfRow(connection, 'car', undefined, search);
+
+      // define query (change query based on whether filter is specified or not)
+      const query = (brand === '')
+        ?
+          `
+          SELECT *
+          FROM car
+          WHERE LOWER(CONCAT(brand, ' ', name)) LIKE LOWER(CONCAT('%', ?, '%'))
+          LIMIT ?
+          OFFSET ?;
+          `
+        :
+          `
+          SELECT *
+          FROM car
+          WHERE
+            LOWER(CONCAT(brand, ' ', name)) LIKE LOWER(CONCAT('%', ?, '%'))
+            AND
+            LOWER(brand) = LOWER(?)
+          LIMIT ?
+          OFFSET ?;
+          `
+      ;
+      
+      const params = (brand === '')
+        ?
+          [search, limit, page]
+        :
+          [search, brand, limit, page]
+      ;
       
       // execute query to get cars on defined page with defined limit
-      const [rows] = await connection.query<RowDataPacket[]>(
-        `SELECT * 
-        FROM car
-        WHERE LOWER(CONCAT(brand, ' ', name))
-        LIKE LOWER(CONCAT('%', ?, '%'))
-        LIMIT ?
-        OFFSET ?;`,
-        [search, limit, page]
-      );
+      const [rows] = await connection.query<RowDataPacket[]>(query, params);
   
       // map the result to represent car objects
       carsList = rows.map(row => {

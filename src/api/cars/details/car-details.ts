@@ -4,10 +4,10 @@ import { query } from "../../../utils/db/query";
 
 // init router
 const carDetailsRouter = express.Router();
-carDetailsRouter.use(express.json());
+
 
 // get 1 single car
-carDetailsRouter.get('/cars/:id', async (req, res) => {
+carDetailsRouter.get('/cars/details/:id', async (req, res) => {
 
     // read id from url
     const id = req.params.id;

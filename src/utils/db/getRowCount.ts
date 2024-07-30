@@ -1,19 +1,20 @@
 import mysql from 'mysql2/promise';
 
 // get the amount of rows of a certain table
-async function getCountOfRows(connection: mysql.Connection, table: string, search: string) {
+async function getCountOfRow(connection: mysql.Connection, table: string, row: string = 'id', search: string = '') {
 
     // read count of different ids
     const [totalRows] = await connection.execute(
-        `SELECT COUNT(id)
-        FROM ${table}
-        WHERE LOWER(CONCAT(brand, ' ', name))
-        LIKE LOWER(CONCAT('%', ?, '%'))`, [search]);
+        `
+        SELECT COUNT(DISTINCT ${row}) AS 'count'
+        FROM ${table};
+        `
+    );
 
     // return count of ids
-    return (totalRows as any)[0]['COUNT(id)'];
+    return (totalRows as any)[0][`count`];
 }
 
 export {
-    getCountOfRows
+    getCountOfRow
 }
