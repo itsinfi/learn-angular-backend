@@ -31,13 +31,16 @@ carsRouter.get('/cars', async (req, res) => {
       const brand = readHeaderString(req.headers['brand']);
 
       // if undefined limit and/or page values, send an error message
-      if (!limit || limit === undefined || !page || page === undefined) {
+      if (limit === null || limit === undefined || page === null || page === undefined) {
         res.status(500).send('No values for (either or both) limit and page specified.');
         return
       }
 
       // get number of cars
       const total = await getRowCount(connection, 'car', undefined, search);
+
+      // calculate offset
+      const offset = (page - 1) * limit;
 
       // define query (change query based on whether filter is specified or not)
       const query = (brand === '')
@@ -64,9 +67,9 @@ carsRouter.get('/cars', async (req, res) => {
       
       const params = (brand === '')
         ?
-          [search, limit, page]
+          [search, limit, offset]
         :
-          [search, brand, limit, page]
+          [search, brand, limit, offset]
       ;
       
       // execute query to get cars on defined page with defined limit
