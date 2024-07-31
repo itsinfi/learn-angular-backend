@@ -43,12 +43,12 @@ const corsConfig = {
   optionsSuccessStatus: 204
 };
 
-// cors middleware
+// Set up Express middleware config
 app.use(cors(corsConfig));
 app.use(express.json());
 
 
-//Route Definitions
+// Route Definitions
 app.get('/cars', carsRouter);
 app.get('/cars/details/:id', carDetailsRouter);
 app.get('/cars/brands', carBrandsRouter);
