@@ -3,7 +3,7 @@ import mysql, { RowDataPacket } from 'mysql2/promise';
 import { query } from "../../utils/db/query";
 import { readHeaderNumber } from "../../utils/http/readHeaderNumber";
 import { readHeaderString } from "../../utils/http/readHeaderString";
-import { getCountOfRow } from "../../utils/db/getRowCount";
+import { getRowCount } from "../../utils/db/getRowCount";
 import { readHeaderStringArray } from '../../utils/http/readHeaderStringArray';
 
 // init router
@@ -37,7 +37,7 @@ carsRouter.get('/cars', async (req, res) => {
       }
 
       // get number of cars
-      const total = await getCountOfRow(connection, 'car', undefined, search);
+      const total = await getRowCount(connection, 'car', undefined, search);
 
       // define query (change query based on whether filter is specified or not)
       const query = (brand === '')

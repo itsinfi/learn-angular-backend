@@ -1,7 +1,7 @@
 import mysql from 'mysql2/promise';
 
 // get the amount of rows of a certain table
-async function getCountOfRow(connection: mysql.Connection, table: string, row: string = 'id', search: string = '') {
+async function getRowCount(connection: mysql.Connection, table: string, row: string = 'id', search: string = '') {
 
     // read count of different ids
     const [totalRows] = await connection.execute(
@@ -16,5 +16,5 @@ async function getCountOfRow(connection: mysql.Connection, table: string, row: s
 }
 
 export {
-    getCountOfRow
+    getRowCount
 }

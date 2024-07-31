@@ -1,7 +1,7 @@
 import express from 'express';
 import mysql, { RowDataPacket } from 'mysql2/promise';
 import { query } from "../../../utils/db/query";
-import { getCountOfRow } from "../../../utils/db/getRowCount";
+import { getRowCount } from "../../../utils/db/getRowCount";
 
 // init router
 const carBrandsRouter = express.Router();
@@ -17,8 +17,8 @@ carBrandsRouter.get('/cars/brands', async (req, res) => {
         // define empty list for car brands
         let carBrands = [];
 
-        // get number of car brands //TODO: total value
-        const total = await getCountOfRow(connection, 'car', 'brand', '');
+        // get number of car brands
+        const total = await getRowCount(connection, 'car', 'brand', '');
         
         // execute query to get car brands
         const [rows] = await connection.query<RowDataPacket[]>(
@@ -26,12 +26,12 @@ carBrandsRouter.get('/cars/brands', async (req, res) => {
             FROM car;`
         );
 
-        // map the result to represent car objects
+        // map the result to a list of car brands
         carBrands = rows.map(row => {
             return row['brand'];
         });
         
-        // return the array of cars as in json format as the request result
+        // return the array of car brands
         res.json({ total, data: carBrands });
 
         // handle errors
