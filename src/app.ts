@@ -9,6 +9,7 @@ import https from 'https';
 import { carsRouter } from './api/cars/cars';
 import { carDetailsRouter } from './api/cars/details/car-details';
 import { carBrandsRouter } from './api/cars/brands/car-brands';
+import { flagRouter } from './api/flag/flag';
 
 
 // init express
@@ -52,6 +53,7 @@ app.use(express.json());
 app.get('/cars', carsRouter);
 app.get('/cars/details/:id', carDetailsRouter);
 app.get('/cars/brands', carBrandsRouter);
+app.get('/flag/:origin', flagRouter);
 
 
 // init server

@@ -16,36 +16,36 @@ carDetailsRouter.get('/cars/details/:id', async (req, res) => {
     await query(async (connection: mysql.Connection) => {
         try {
 
-        // get the car (insert the id as a variable to ensure some safety for sql injections)
-        const [rows] = await connection.query<RowDataPacket[]>(`SELECT * FROM car WHERE id = ? LIMIT 1;`, [id]);
-        
-        // map the result into a car object
-        const carsList = rows.map(row => {
-            return {
-            id: row['id'],
-            name: row['name'],
-            brand: row['brand'],
-            horsepower: row['horsepower'],
-            isItalian: row['isItalian'],
-            photo: row['photo'],
-            price: row['price'],
-            description: row['description']
-            };
-        });
-        
-        // return the car if one was found
-        if (carsList.length > 0) {
-            res.json(carsList[0]);
+            // get the car (insert the id as a variable to ensure some safety for sql injections)
+            const [rows] = await connection.query<RowDataPacket[]>(`SELECT * FROM car WHERE id = ? LIMIT 1;`, [id]);
+            
+            // map the result into a car object
+            const carsList = rows.map(row => {
+                return {
+                id: row['id'],
+                name: row['name'],
+                brand: row['brand'],
+                horsepower: row['horsepower'],
+                origin: row['origin'],
+                photo: row['photo'],
+                price: row['price'],
+                description: row['description']
+                };
+            });
+            
+            // return the car if one was found
+            if (carsList.length > 0) {
+                res.json(carsList[0]);
 
-        // else send an error message 404
-        } else {
-            res.status(404).send('car not found.');
-        }
+            // else send an error message 404
+            } else {
+                res.status(404).send('car not found.');
+            }
 
         // handle other errors
         } catch (e) {
-        console.error(e);
-        res.status(500).send('Error retrieving the car.');
+            console.error(e);
+            res.status(500).send('Error retrieving the car.');
         }
     }, () => {
         //handle db oconnetion errors

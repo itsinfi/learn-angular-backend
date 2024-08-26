@@ -19,7 +19,7 @@ carsRouter.get('/cars', async (req, res) => {
 
       // define empty list for cars
       let carsList = [];
-
+      
       // read limit and page values for paginiation from header
       const limit = readHeaderNumber(req.headers['limit']);
       const page = readHeaderNumber(req.headers['page']);
@@ -82,7 +82,7 @@ carsRouter.get('/cars', async (req, res) => {
           name: row['name'],
           brand: row['brand'],
           horsepower: row['horsepower'],
-          isItalian: row['isItalian'],
+          origin: row['origin'],
           photo: row['photo'],
           price: row['price'],
           description: row['description']
